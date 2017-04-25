@@ -3,12 +3,14 @@ package com.mustonen.niko.hyperflightsimulatorultra3d;
 import android.content.Context;
 import android.opengl.GLSurfaceView;
 
+import com.mustonen.niko.hyperflightsimulatorultra3d.object.Plane;
 import com.mustonen.niko.hyperflightsimulatorultra3d.object.Wall;
 import com.mustonen.niko.hyperflightsimulatorultra3d.opengl.ColorProgram;
 import com.mustonen.niko.hyperflightsimulatorultra3d.opengl.TextureProgram;
 import com.mustonen.niko.hyperflightsimulatorultra3d.util.Debug;
 import com.mustonen.niko.hyperflightsimulatorultra3d.util.FileStringReader;
 import com.mustonen.niko.hyperflightsimulatorultra3d.object.JetPlane;
+import com.mustonen.niko.hyperflightsimulatorultra3d.util.ObjFileReader;
 import com.mustonen.niko.hyperflightsimulatorultra3d.util.TextureUtil;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -27,6 +29,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 
     private JetPlane jet;
     private Wall wall;
+    private Plane plane;
 
     //Matrices
     private final float[] projectionMatrix = new float[16];
@@ -45,6 +48,9 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         FRAGMENT_SHADER_CODE = FileStringReader.readFile(C, R.raw.fragment_shader);
         TEXTURE_VERTEX_SHADER_CODE = FileStringReader.readFile(C, R.raw.texture_vertex_shader);
         TEXTURE_FRAGMENT_SHADER_CODE = FileStringReader.readFile(C, R.raw.texture_fragment_shader);
+
+        float[] vertices = ObjFileReader.readFile(C, R.raw.cube);
+        plane = new Plane(vertices);
     }
 
     @Override
@@ -86,18 +92,19 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
             avgY += avgRotationY[i];
         }
         avgRotationX[0] = -GameActivity.dirX * 5;
-        avgRotationY[0] = -GameActivity.dirY * 5;
+        avgRotationY[0] = -(GameActivity.dirY + 1f) * 5;
         avgX += avgRotationX[0];
         avgY += avgRotationY[0];
         avgX = avgX / avgRotationX.length;
         avgY = avgY / avgRotationY.length;
     }
 
-    private static float direction = 0;
+    private float direction = 0;
     private float rotationX = 0f;
     private float rotationY = 0f;
     private float rotationZ = 0f;
     private float planeDirectionX = 0;
+    private float planeDirectionY = 0;
     private float planeDirectionZ = 0;
 
     @Override
@@ -107,7 +114,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 
         //Draw walls
         setIdentityM(modelMatrix, 0);
-        translateM(modelMatrix, 0, 0 - worldX, 0, 0 - worldZ);
+        translateM(modelMatrix, 0, 0 - worldX, 0 - worldY, 0 - worldZ);
         multiplyMM(modelViewProjectionMatrix, 0, viewProjectionMatrix,
                 0, modelMatrix, 0);
         glUseProgram(textureProgram.getProgram());
@@ -117,23 +124,27 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 
         //Draw plane
         setIdentityM(modelMatrix, 0);
-        translateM(modelMatrix, 0, 0, -.4f, 0);
+        translateM(modelMatrix, 0, 0, -1.5f, 0);
         rotateM(modelMatrix, 0, rotationX + 180, 0, 1, 0);
+        rotateM(modelMatrix, 0, rotationY, 1, 0, 0);
 
         planeDirectionX = modelMatrix[2] / 10f;
+        planeDirectionY = modelMatrix[9] / 5f;
         planeDirectionZ = modelMatrix[10] / 10f;
         worldX -= planeDirectionX;
+        worldY += planeDirectionY;
         worldZ += planeDirectionZ;
 
         rotateM(modelMatrix, 0, rotationZ, 0, 0, 1);
+        rotateM(modelMatrix, 0, -80, 1, 0, 0);
         multiplyMM(modelViewProjectionMatrix, 0, viewProjectionMatrix,
                 0, modelMatrix, 0);
         glUseProgram(colorProgram.getProgram());
         colorProgram.setUniforms(modelViewProjectionMatrix, 0);
-        jet.bind(colorProgram);
-        jet.draw();
+        plane.bind(colorProgram);
+        plane.draw();
 
-        setLookAtM(viewMatrix, 0, modelMatrix[2] * 2, 0, -modelMatrix[10] * 2, modelMatrix[2], 0, -modelMatrix[10], 0, 1, 0);
+        setLookAtM(viewMatrix, 0, planeDirectionX * 30, 0, -planeDirectionZ * 30, 0, 0, 0, 0, 1, 0);
 
         multiplyMM(modelViewProjectionMatrix, 0, viewProjectionMatrix,
                 0, modelMatrix, 0);
@@ -168,12 +179,14 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     public static boolean isUp = false;
     public static boolean isDown = false;
     public float worldX = 0;
+    public float worldY = 0;
     public float worldZ = 0;
 
     public void move() {
         rotationX += direction;
         rotate();
         rotationZ = avgX;
+        rotationY = avgY;
         /*if(avgX < 35 && avgX > -35) {
             float distance = Math.abs(avgX - rotationZ);
             float speed = distance / 3f;

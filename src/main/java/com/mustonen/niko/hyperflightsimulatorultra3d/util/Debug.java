@@ -6,7 +6,7 @@ import android.util.Log;
 public class Debug {
 
     public static final boolean ON = true;
-    private static String DEFAULT_DEBUG_TAG = "debug";
+    private static String DEFAULT_DEBUG_TAG = "debuggaus";
 
     public static final void debug(@Nullable String tag, String message) {
         if(ON) {
