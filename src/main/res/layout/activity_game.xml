@@ -5,6 +5,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="horizontal"
+    android:gravity="right"
     tools:context="com.mustonen.niko.hyperflightsimulatorultra3d.GameActivity">
 
+    <TextView
+        android:id="@+id/pointsText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0 POINTS"
+        android:textSize="20dp"
+        android:fontFamily="sans-serif"
+        android:textColor="#dd3300"/>
 </LinearLayout>

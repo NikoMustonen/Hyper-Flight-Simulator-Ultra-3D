@@ -18,15 +18,18 @@ public class Vertices {
     public static final int STRIDE_WITH_TEXTURE =
             (VERTICES_COUNT + TEXTURE_COMPONENT_COUNT) * BYTES_PER_FLOAT;
 
-    private final FloatBuffer VERTICES_BUFFER;
-    
+    public final FloatBuffer VERTICES_BUFFER;
+    public float[] verticesArray;
+
     public Vertices(float[] verticesArray) {
+        this.verticesArray = verticesArray;
         VERTICES_BUFFER = ByteBuffer
                 .allocateDirect(verticesArray.length * BYTES_PER_FLOAT)
                 .order(ByteOrder.nativeOrder())
                 .asFloatBuffer()
                 .put(verticesArray);
     }
+
     public void setVertexAttributePointer(int offset, int attributeLocation,
                                        int componentAmount, int stride) {
         VERTICES_BUFFER.position(offset);

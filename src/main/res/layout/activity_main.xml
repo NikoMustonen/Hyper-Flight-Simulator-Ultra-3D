@@ -6,7 +6,8 @@
     android:layout_height="match_parent"
     android:orientation="horizontal"
     android:gravity="center"
-    tools:context="com.mustonen.niko.hyperflightsimulatorultra3d.MainActivity">
+    tools:context="com.mustonen.niko.hyperflightsimulatorultra3d.MainActivity"
+    android:id="@+id/gameView">
 
     <Button
         android:layout_width="wrap_content"

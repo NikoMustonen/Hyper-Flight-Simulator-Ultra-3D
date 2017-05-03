@@ -1,15 +1,19 @@
 package com.mustonen.niko.hyperflightsimulatorultra3d;
 
 import android.content.Context;
+import android.content.Intent;
 import android.opengl.GLSurfaceView;
 
+import com.mustonen.niko.hyperflightsimulatorultra3d.geometry.Vector3D;
+import com.mustonen.niko.hyperflightsimulatorultra3d.object.CollisionMapDebug;
 import com.mustonen.niko.hyperflightsimulatorultra3d.object.Plane;
+import com.mustonen.niko.hyperflightsimulatorultra3d.object.Ring;
+import com.mustonen.niko.hyperflightsimulatorultra3d.object.Terrain;
 import com.mustonen.niko.hyperflightsimulatorultra3d.object.Wall;
 import com.mustonen.niko.hyperflightsimulatorultra3d.opengl.ColorProgram;
 import com.mustonen.niko.hyperflightsimulatorultra3d.opengl.TextureProgram;
 import com.mustonen.niko.hyperflightsimulatorultra3d.util.Debug;
 import com.mustonen.niko.hyperflightsimulatorultra3d.util.FileStringReader;
-import com.mustonen.niko.hyperflightsimulatorultra3d.object.JetPlane;
 import com.mustonen.niko.hyperflightsimulatorultra3d.util.ObjFileReader;
 import com.mustonen.niko.hyperflightsimulatorultra3d.util.TextureUtil;
 
@@ -27,9 +31,11 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     private TextureProgram textureProgram;
     private ColorProgram colorProgram;
 
-    private JetPlane jet;
     private Wall wall;
     private Plane plane;
+    private Ring ring;
+    private Terrain terrain;
+    //private CollisionMapDebug debug;
 
     //Matrices
     private final float[] projectionMatrix = new float[16];
@@ -49,8 +55,27 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         TEXTURE_VERTEX_SHADER_CODE = FileStringReader.readFile(C, R.raw.texture_vertex_shader);
         TEXTURE_FRAGMENT_SHADER_CODE = FileStringReader.readFile(C, R.raw.texture_fragment_shader);
 
-        float[] vertices = ObjFileReader.readFile(C, R.raw.cube);
-        plane = new Plane(vertices);
+        //SetPlane
+        ObjFileReader planeReader = new ObjFileReader();
+        float[] planeVertices = planeReader.readFile(C, R.raw.cube, .1f);
+        plane = new Plane(planeVertices);
+        plane.setNormalMap(planeReader.getNormalMap());
+
+        ObjFileReader ringReader = new ObjFileReader();
+        float[] ringVertices = ringReader.readFile(C, R.raw.ring, .5f);
+        ring = new Ring(ringVertices);
+        ring.setNormalMap(ringReader.getNormalMap());
+
+        ObjFileReader terrainReader = new ObjFileReader();
+        float[] terrainVertices = terrainReader.readFile(C, R.raw.terrain, 5, 51, 101);
+        terrain = new Terrain(terrainVertices, terrainReader.getNormalMap());
+        terrain.setCollisionMap(terrainReader.getCollisionMap());
+
+        /*debug = new CollisionMapDebug(
+                terrainReader.getCollisionMap(),
+                terrain.getMinX(), terrain.getMaxX(), terrain.getMinZ(), terrain.getMaxZ());
+        */
+        ring.setPosition(terrain.getRandomPosition());
     }
 
     @Override
@@ -58,7 +83,6 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glEnable(GL_DEPTH_TEST);
 
-        jet = new JetPlane();
         wall = new Wall();
 
         wallTexture = TextureUtil.loadTexture(C, R.drawable.wall);
@@ -70,17 +94,25 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         glViewport(0, 0, width, height);
-        setPerspectiveMatrix(50, (float) width / (float) height, .1f, 50f, projectionMatrix);
+        setPerspectiveMatrix(75, (float) width / (float) height, .1f, 150f, projectionMatrix);
         setLookAtM(viewMatrix, 0, 0, 0, -2f, 0, 0, -1f, 0, 1, 0);
     }
 
-    static float[] avgRotationX = new float[10];
-    static float[] avgRotationY = new float[10];
+    static float[] avgRotationX = new float[25];
+    static float[] avgRotationY = new float[25];
     static float avgX = 0;
     static float avgY = 0;
 
+    private float directionX = 0;
+    private float rotationX = 0f;
+    private float rotationY = 0f;
+    private float rotationZ = 0f;
+    private float planeDirectionX = 0;
+    private float planeDirectionY = 0;
+    private float planeDirectionZ = 0;
+
     public void rotate() {
-        direction = GameActivity.dirX / 2f;
+        directionX = GameActivity.dirX / 2f;
 
         avgX = 0;
         avgY = 0;
@@ -92,20 +124,14 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
             avgY += avgRotationY[i];
         }
         avgRotationX[0] = -GameActivity.dirX * 5;
-        avgRotationY[0] = -(GameActivity.dirY + 1f) * 5;
+        avgRotationY[0] = -GameActivity.dirY * 5;
         avgX += avgRotationX[0];
         avgY += avgRotationY[0];
         avgX = avgX / avgRotationX.length;
         avgY = avgY / avgRotationY.length;
     }
 
-    private float direction = 0;
-    private float rotationX = 0f;
-    private float rotationY = 0f;
-    private float rotationZ = 0f;
-    private float planeDirectionX = 0;
-    private float planeDirectionY = 0;
-    private float planeDirectionZ = 0;
+    private Vector3D lightDirection = new Vector3D(new float[]{1, 0, 0}).getNormalizedVersion();
 
     @Override
     public void onDrawFrame(GL10 gl) {
@@ -113,14 +139,14 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         multiplyMM(viewProjectionMatrix, 0, projectionMatrix, 0, viewMatrix, 0);
 
         //Draw walls
-        setIdentityM(modelMatrix, 0);
-        translateM(modelMatrix, 0, 0 - worldX, 0 - worldY, 0 - worldZ);
+        /*setIdentityM(modelMatrix, 0);
+
         multiplyMM(modelViewProjectionMatrix, 0, viewProjectionMatrix,
                 0, modelMatrix, 0);
         glUseProgram(textureProgram.getProgram());
         textureProgram.setUniforms(modelViewProjectionMatrix, wallTexture);
         wall.bind(textureProgram);
-        wall.draw();
+        wall.draw();*/
 
         //Draw plane
         setIdentityM(modelMatrix, 0);
@@ -131,9 +157,9 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         planeDirectionX = modelMatrix[2] / 10f;
         planeDirectionY = modelMatrix[9] / 5f;
         planeDirectionZ = modelMatrix[10] / 10f;
-        worldX -= planeDirectionX;
-        worldY += planeDirectionY;
-        worldZ += planeDirectionZ;
+        worldX -= planeDirectionX * 4;
+        worldY += planeDirectionY * 4;
+        worldZ += planeDirectionZ * 4;
 
         rotateM(modelMatrix, 0, rotationZ, 0, 0, 1);
         rotateM(modelMatrix, 0, -80, 1, 0, 0);
@@ -142,13 +168,42 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         glUseProgram(colorProgram.getProgram());
         colorProgram.setUniforms(modelViewProjectionMatrix, 0);
         plane.bind(colorProgram);
+        plane.setLightDirection(lightDirection);
         plane.draw();
 
-        setLookAtM(viewMatrix, 0, planeDirectionX * 30, 0, -planeDirectionZ * 30, 0, 0, 0, 0, 1, 0);
+        //Draw ring
+        ring.draw(modelMatrix, viewProjectionMatrix, modelViewProjectionMatrix, colorProgram, worldX, worldY, worldZ, lightDirection);
+
+        //Draw terrain
+        setIdentityM(modelMatrix, 0);
+        translateM(modelMatrix, 0, - worldX, - worldY - 10, - worldZ);
+        multiplyMM(modelViewProjectionMatrix, 0, viewProjectionMatrix,
+                0, modelMatrix, 0);
+        glUseProgram(colorProgram.getProgram());
+        colorProgram.setUniforms(modelViewProjectionMatrix, 0);
+        terrain.bind(colorProgram);
+        terrain.draw();
+        /*debug.bind(colorProgram);
+        debug.draw();*/
+
+        lightDirection.setTuple(-planeDirectionX * 10, planeDirectionX * 10, 1);
+        lightDirection.normalize();
+        setLookAtM(viewMatrix, 0, planeDirectionX * 30, -planeDirectionY * 10, -planeDirectionZ * 30, 0, 0, 0, 0, 1, 0);
 
         multiplyMM(modelViewProjectionMatrix, 0, viewProjectionMatrix,
                 0, modelMatrix, 0);
 
+        if(ring.isCollision(worldX, worldY, worldZ)) {
+            ring.setPosition(terrain.getRandomPosition());
+            Intent i = new Intent("i");
+            this.C.sendBroadcast(i);
+        };
+
+        if(terrain.checkWorldCollision(worldX, worldY, worldZ)) {
+            worldX = 0;
+            worldY = 0;
+            worldZ = 0;
+        }
         move();
     }
 
@@ -174,29 +229,15 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         matrix[15] = 0f;
     }
 
-    public static boolean isRotateLeft = false;
-    public static boolean isRotateRight = false;
-    public static boolean isUp = false;
-    public static boolean isDown = false;
     public float worldX = 0;
     public float worldY = 0;
     public float worldZ = 0;
 
     public void move() {
-        rotationX += direction;
+        rotationX += directionX / 2f;
         rotate();
         rotationZ = avgX;
         rotationY = avgY;
-        /*if(avgX < 35 && avgX > -35) {
-            float distance = Math.abs(avgX - rotationZ);
-            float speed = distance / 3f;
-            //Debug.debug(null, "Speed: " + speed);
-            if(rotationZ < avgX) {
-                rotationZ += speed;
-            } else if(rotationZ > avgX) {
-                rotationZ -= speed;
-            }
-        }*/
     }
 
     private static void printMatrix(float[] matrix) {
