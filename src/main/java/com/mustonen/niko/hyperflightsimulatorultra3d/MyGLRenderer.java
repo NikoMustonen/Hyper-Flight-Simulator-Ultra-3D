@@ -9,7 +9,6 @@ import com.mustonen.niko.hyperflightsimulatorultra3d.geometry.Vector3D;
 import com.mustonen.niko.hyperflightsimulatorultra3d.opengl.ColorProgram;
 import com.mustonen.niko.hyperflightsimulatorultra3d.opengl.TextureProgram;
 import com.mustonen.niko.hyperflightsimulatorultra3d.object.WireFrameObject;
-import com.mustonen.niko.hyperflightsimulatorultra3d.util.Debug;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -329,7 +328,8 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
      * @param far        Most far visible point.
      * @param matrix     Stored matrix.
      */
-    public static void setPerspectiveMatrix(float fovDegrees, float aspect, float near, float far, float[] matrix) {
+    public static void setPerspectiveMatrix(
+            float fovDegrees, float aspect, float near, float far, float[] matrix) {
         final float angleRads = (float) (fovDegrees * Math.PI / 180.0);
         final float a = (float) (1.0 / Math.tan(angleRads / 2.0));
 

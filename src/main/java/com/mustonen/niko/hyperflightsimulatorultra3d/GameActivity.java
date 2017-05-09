@@ -226,7 +226,8 @@ public class GameActivity extends AppCompatActivity implements SensorEventListen
         this.setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
         AudioAttributes atr =
-                new AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build();
+                new AudioAttributes.Builder().
+                        setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build();
 
         SoundPool.Builder builder = new SoundPool.Builder();
         builder.setAudioAttributes(atr);
@@ -557,9 +558,12 @@ public class GameActivity extends AppCompatActivity implements SensorEventListen
             linearLayout.addView(tapToStart);
 
             //Initaializes games point and time views
-            pointsView = FontUtil.generateSciFiText(GameActivity.this, "0 points", View.TEXT_ALIGNMENT_TEXT_END, startColor, endColor);
-            timeView = FontUtil.generateSciFiText(GameActivity.this, "00:30", View.TEXT_ALIGNMENT_TEXT_START, startColor, endColor);
-            addSecondsView = FontUtil.generateSciFiText(GameActivity.this, "+2", -50, startColor, endColor);
+            pointsView = FontUtil.generateSciFiText(GameActivity.this, "0 points",
+                    View.TEXT_ALIGNMENT_TEXT_END, startColor, endColor);
+            timeView = FontUtil.generateSciFiText(GameActivity.this, "00:30",
+                    View.TEXT_ALIGNMENT_TEXT_START, startColor, endColor);
+            addSecondsView = FontUtil.generateSciFiText(
+                    GameActivity.this, "+2", -50, startColor, endColor);
             addSecondsView.setLayoutParams(new LayoutParams(
                     LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT
             ));
@@ -570,7 +574,8 @@ public class GameActivity extends AppCompatActivity implements SensorEventListen
             relativeLayout.addView(addSecondsView);
             relativeLayout.addView(pointsView);
             relativeLayout.addView(timeView);
-            addContentView(relativeLayout, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+            addContentView(relativeLayout, new LayoutParams(LayoutParams.MATCH_PARENT,
+                    LayoutParams.MATCH_PARENT));
 
             mGLView.setOnTouchListener(new OnTouchListener() {
                 @Override

@@ -128,7 +128,8 @@ public class Ring extends Colored3DObject {
      */
     public boolean isCollision(float wX, float wY, float wZ) {
 
-        return Math.abs(-wX + x) <= 2f && Math.abs(-wY + 1.0f + y) <= 2.5f && Math.abs(+wZ + z) <= 2f;
+        return Math.abs(-wX + x) <= 2f &&
+                Math.abs(-wY + 1.0f + y) <= 2.5f && Math.abs(+wZ + z) <= 2f;
     }
 
     /**

@@ -146,7 +146,8 @@ public class Terrain extends Colored3DObject {
             poZ = (float) (Math.random() * difZ + minZ);
 
             for (Ring r : rings) {
-                if (poX > r.getX() - 1f && poX < r.getX() + 1f && poZ > r.getZ() - 1f && poZ < r.getZ() + 1f) {
+                if (poX > r.getX() - 1f && poX < r.getX() + 1f && poZ > r.getZ()
+                        - 1f && poZ < r.getZ() + 1f) {
                     isValid = false;
                 }
             }
