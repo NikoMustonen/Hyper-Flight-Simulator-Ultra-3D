@@ -19,18 +19,42 @@ import static android.opengl.GLES20.glLinkProgram;
 import static android.opengl.GLES20.glShaderSource;
 import static android.opengl.GLES20.glValidateProgram;
 
+/**
+ * Class for generating shaders and shader programs.
+ *
+ * @author Niko Mustonen mustonen.niko@gmail.com
+ * @version %I%, %G%
+ * @since 1.8
+ */
 public class ShaderUtil {
 
-    private static final String TAG = "ShaderUtil";
-
+    /**
+     * Generates vertex shader.
+     *
+     * @param code Vertex shader code.
+     * @return Shader memory location.
+     */
     public static int compileVertexShader(String code) {
         return compileShader(GL_VERTEX_SHADER, code);
     }
 
+    /**
+     * Generates fragment shader.
+     *
+     * @param code Fragment shader code.
+     * @return Shader memory location.
+     */
     public static int compileFragmentShader(String code) {
         return compileShader(GL_FRAGMENT_SHADER, code);
     }
 
+    /**
+     * Compiles shader.
+     *
+     * @param type Shader type, fragment or vertex.
+     * @param code Shader code.
+     * @return Returns shaders memory location.
+     */
     private static int compileShader(int type, String code) {
         final int SHADER_ID = glCreateShader(type);
         if(SHADER_ID == 0) {
@@ -52,6 +76,13 @@ public class ShaderUtil {
         }
     }
 
+    /**
+     * Links fragment shader and vertex shader to OpenGl program.
+     *
+     * @param VERTEX_SHADER_ID Vertex shader.
+     * @param FRAGMENT_SHADER_ID Fragment shader.
+     * @return Returns programs memory loacation.
+     */
     public static int linkProgram(final int VERTEX_SHADER_ID, final int FRAGMENT_SHADER_ID) {
         final int PROGRAM_ID = glCreateProgram();
 
@@ -77,6 +108,12 @@ public class ShaderUtil {
         }
     }
 
+    /**
+     * Validates shader program.
+     *
+     * @param PROGRAM_ID Program memory location.
+     * @return Returns boolean value based on programs state.
+     */
     public static boolean isValidProgram(final int PROGRAM_ID) {
         glValidateProgram(PROGRAM_ID);
 
@@ -92,6 +129,13 @@ public class ShaderUtil {
         }
     }
 
+    /**
+     * Starts shader program building.
+     *
+     * @param vertexShaderCode Vertex shader code in string format.
+     * @param fragmentShaderCode Fragment shader code in string format.
+     * @return Returns ready programs memory loaction.
+     */
     public static int buildProgram(String vertexShaderCode, String fragmentShaderCode) {
         final int VERTEX_SHADER = compileVertexShader(vertexShaderCode);
         final int FRAGMENT_SHADER = compileFragmentShader(fragmentShaderCode);

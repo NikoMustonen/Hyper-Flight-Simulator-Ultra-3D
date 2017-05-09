@@ -7,14 +7,43 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 
+/**
+ * Class for reading .obj files.
+ *
+ * @author Niko Mustonen mustonen.niko@gmail.com
+ * @version %I%, %G%
+ * @since 1.8
+ */
 public class ObjFileReader {
 
+    /**
+     * Stores vertices in an array.
+     */
     private float[] verticesArray;
+
+    /**
+     * Stores object normals in an array if they are stored in the obj file.
+     */
     private float[] normalsArray;
 
+    /**
+     * Amount of rows or cols in object.
+     */
     private int rows, cols;
+
+    /**
+     * Stores collision for terrains.
+     */
     private float[][] collisionMap;
 
+    /**
+     * Reads .obj file.
+     *
+     * @param c      Activity context.
+     * @param fileId File id.
+     * @param scale  Object scale.
+     * @return Return objects vertices as an array of floats.
+     */
     public float[] readFile(Context c, int fileId, float scale) {
 
         ArrayList<float[]> normals = new ArrayList<>();
@@ -67,6 +96,16 @@ public class ObjFileReader {
         return verticesArray;
     }
 
+    /**
+     * Reads .obj file and generates collision map based on its height positions.
+     *
+     * @param c       Activity context.
+     * @param fileId  File id.
+     * @param scale   Object scale.
+     * @param objRows Rows in object.
+     * @param objCols Cols in object.
+     * @return Return objects vertices as an array of floats.
+     */
     public float[] readFile(Context c, int fileId, float scale, int objRows, int objCols) {
 
         this.collisionMap = new float[objRows][objCols];
@@ -121,10 +160,28 @@ public class ObjFileReader {
         return verticesArray;
     }
 
+    /**
+     * Regex for lines that start with vertex indicator.
+     */
     private static final String VERTICES = "(^[v ]*)";
+
+    /**
+     * Regex for lines that start with vertex normal indicator.
+     */
     private static final String VERTICES_NORMAL = "(^[vn ]*)";
+
+    /**
+     * Regex for lines that start with polygon face indicator.
+     */
     private static final String FACE = "(^[f ]*)";
 
+    /**
+     * Converts file line to float coordinates.
+     *
+     * @param line  Line to be converted.
+     * @param scale Object scale.
+     * @return Returns converted line as a float array.
+     */
     private float[] lineToCoords(String line, float scale) {
         line = line.trim();
         String trimmedLine = line.replaceAll(VERTICES, "");
@@ -142,6 +199,15 @@ public class ObjFileReader {
         return null;
     }
 
+    /**
+     * Converts file line to float coordinates.
+     *
+     * @param line    Line to be converted.
+     * @param scale   Object scale.
+     * @param objRows Rows in object.
+     * @param objCols Cols in object.
+     * @return
+     */
     private float[] lineToCoords(String line, float scale, int objRows, int objCols) {
         line = line.trim();
         String trimmedLine = line.replaceAll(VERTICES, "");
@@ -152,10 +218,10 @@ public class ObjFileReader {
             for (int i = 0; i < coords.length; i++) {
                 coords[i] = Float.parseFloat(coordsString[i]) * scale;
 
-                if(i == 1) {
+                if (i == 1) {
                     this.collisionMap[this.rows][this.cols] = coords[i];
                     this.cols++;
-                    if(this.cols >= objCols) {
+                    if (this.cols >= objCols) {
                         this.cols = 0;
                         this.rows++;
                     }
@@ -168,9 +234,16 @@ public class ObjFileReader {
         return null;
     }
 
+    /**
+     * Adds points to vertices array.
+     *
+     * @param verticesBuffer Array to store new values.
+     * @param vertices       Current vertices.
+     * @param line           Line to define vertices.
+     */
     private void addPoints(ArrayList<Float> verticesBuffer,
-                                  ArrayList<float[]> vertices,
-                                  String line) {
+                           ArrayList<float[]> vertices,
+                           String line) {
 
         line = line.replaceFirst(FACE, "").trim();
         boolean isSlash = line.contains("/");
@@ -203,14 +276,30 @@ public class ObjFileReader {
         }
     }
 
+    /**
+     * Returns objects normal map.
+     *
+     * @return Normal map float array.
+     */
     public float[] getNormalMap() {
         return this.normalsArray;
     }
 
+    /**
+     * Returns collision map.
+     *
+     * @return Collision map float array.
+     */
     public float[][] getCollisionMap() {
         return this.collisionMap;
     }
 
+    /**
+     * Converts string line to normal indexes.
+     *
+     * @param line Converted line.
+     * @return Normal indexes.
+     */
     private int[] getNormalIndexes(String line) {
 
         line = line.replaceFirst(FACE, "").trim();

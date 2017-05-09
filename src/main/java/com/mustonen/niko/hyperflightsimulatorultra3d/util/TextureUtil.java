@@ -7,8 +7,22 @@ import android.graphics.BitmapFactory;
 import static android.opengl.GLES20.*;
 import static android.opengl.GLUtils.*;
 
+/**
+ * Class for loading textures.
+ *
+ * @author Niko Mustonen mustonen.niko@gmail.com
+ * @version %I%, %G%
+ * @since 1.8
+ */
 public class TextureUtil {
 
+    /**
+     * Loads textures.
+     *
+     * @param c Activity context.
+     * @param fileId File id.
+     * @return Textures memory location.
+     */
     public static int loadTexture(Context c, int fileId) {
         final int[] textures = new int[1];
         glGenTextures(1, textures, 0);

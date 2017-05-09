@@ -1,0 +1,15 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.mustonen.niko.hyperflightsimulatorultra3d.MainActivity"
+    android:id="@+id/highscore_fragment">
+
+    <ListView
+        android:descendantFocusability="blocksDescendants"
+        android:layout_margin="15dp"
+        android:id="@+id/listview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" >
+    </ListView>
+</FrameLayout>
